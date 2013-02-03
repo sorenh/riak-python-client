@@ -42,6 +42,7 @@ class RiakError(Exception):
         return repr(self.value)
 
 from mapreduce import RiakKeyFilter
+-from client import RiakClient
 
 ONE = "one"
 ALL = "all"

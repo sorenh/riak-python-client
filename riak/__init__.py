@@ -41,6 +41,7 @@ class RiakError(Exception):
     def __str__(self):
         return repr(self.value)
 
+from client import RiakClient
 from mapreduce import RiakKeyFilter
 
 ONE = "one"

@@ -20,6 +20,7 @@ from riak.transports.pool import BadResource
 from riak.transports.pbc import is_retryable as is_pbc_retryable
 from riak.transports.http import is_retryable as is_http_retryable
 import httplib
+import sys
 
 
 class RiakClientTransport(object):
@@ -58,6 +59,7 @@ class RiakClientTransport(object):
         def _skip_bad_nodes(transport):
             return transport._node not in skip_nodes
 
+        saved_exc = None
         for retry in range(self.RETRY_COUNT):
             try:
                 with pool.take(_filter=_skip_bad_nodes) as transport:
@@ -67,11 +69,15 @@ class RiakClientTransport(object):
                         if _is_retryable(e):
                             transport._node.error_rate.incr(1)
                             skip_nodes.append(transport._node)
+                            saved_exc = sys.exc_info()
                             raise BadResource(e)
                         else:
                             raise e
             except BadResource:
                 continue
+
+        if saved_exc:
+            raise saved_exc[0], saved_exc[1], saved_exc[2]
 
     def _choose_pool(self, protocol=None):
         """
